@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connection>
+<crmorganizationservice>https://csp.api.crm.dynamics.com/XRMServices/2011/Organization.svc</crmorganizationservice>
+<username>wbojcevski@hsdyn.com</username>
+<password>Hi!@hI121</password>
+</connection>
