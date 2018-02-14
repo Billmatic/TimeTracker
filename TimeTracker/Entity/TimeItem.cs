@@ -21,5 +21,7 @@ namespace TimeTracker.Entity
         public int? index { get; set; }
 
         public Guid? crmTaskId { get; set; }
+
+        public string project { get; set; }
     }
 }

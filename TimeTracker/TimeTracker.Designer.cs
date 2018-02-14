@@ -45,6 +45,7 @@
             this.totalBillableTimeLabel = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.timeTrackerToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.button2 = new System.Windows.Forms.Button();
             this.MainMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,7 +59,7 @@
             this.createToolStripMenuItem});
             this.MainMenu.Location = new System.Drawing.Point(0, 0);
             this.MainMenu.Name = "MainMenu";
-            this.MainMenu.Size = new System.Drawing.Size(878, 30);
+            this.MainMenu.Size = new System.Drawing.Size(1062, 26);
             this.MainMenu.TabIndex = 0;
             this.MainMenu.Text = "menuStrip1";
             // 
@@ -70,34 +71,34 @@
             this.saveToolStripMenuItem,
             this.saveAsToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(47, 26);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(43, 22);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // newToolStripMenuItem
             // 
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(151, 30);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(129, 26);
             this.newToolStripMenuItem.Text = "New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(151, 30);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(129, 26);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(151, 30);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(129, 26);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(151, 30);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(129, 26);
             this.saveAsToolStripMenuItem.Text = "Save As";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
@@ -106,13 +107,13 @@
             this.createToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.newItemToolStripMenuItem});
             this.createToolStripMenuItem.Name = "createToolStripMenuItem";
-            this.createToolStripMenuItem.Size = new System.Drawing.Size(71, 26);
+            this.createToolStripMenuItem.Size = new System.Drawing.Size(61, 22);
             this.createToolStripMenuItem.Text = "Create";
             // 
             // newItemToolStripMenuItem
             // 
             this.newItemToolStripMenuItem.Name = "newItemToolStripMenuItem";
-            this.newItemToolStripMenuItem.Size = new System.Drawing.Size(166, 30);
+            this.newItemToolStripMenuItem.Size = new System.Drawing.Size(143, 26);
             this.newItemToolStripMenuItem.Text = "New Item";
             this.newItemToolStripMenuItem.Click += new System.EventHandler(this.newItemToolStripMenuItem_Click);
             // 
@@ -121,21 +122,21 @@
             this.MainPanel.AutoScroll = true;
             this.MainPanel.Location = new System.Drawing.Point(13, 28);
             this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Size = new System.Drawing.Size(855, 245);
+            this.MainPanel.Size = new System.Drawing.Size(1027, 245);
             this.MainPanel.TabIndex = 1;
             // 
             // totalTimeTextBox
             // 
             this.totalTimeTextBox.Location = new System.Drawing.Point(49, 279);
             this.totalTimeTextBox.Name = "totalTimeTextBox";
-            this.totalTimeTextBox.Size = new System.Drawing.Size(70, 28);
+            this.totalTimeTextBox.Size = new System.Drawing.Size(70, 24);
             this.totalTimeTextBox.TabIndex = 2;
             // 
             // billableTimeTextBox
             // 
             this.billableTimeTextBox.Location = new System.Drawing.Point(245, 279);
             this.billableTimeTextBox.Name = "billableTimeTextBox";
-            this.billableTimeTextBox.Size = new System.Drawing.Size(70, 28);
+            this.billableTimeTextBox.Size = new System.Drawing.Size(70, 24);
             this.billableTimeTextBox.TabIndex = 3;
             // 
             // totalTimeLabel
@@ -143,7 +144,7 @@
             this.totalTimeLabel.AutoSize = true;
             this.totalTimeLabel.Location = new System.Drawing.Point(13, 283);
             this.totalTimeLabel.Name = "totalTimeLabel";
-            this.totalTimeLabel.Size = new System.Drawing.Size(44, 21);
+            this.totalTimeLabel.Size = new System.Drawing.Size(36, 17);
             this.totalTimeLabel.TabIndex = 4;
             this.totalTimeLabel.Text = "Time";
             // 
@@ -152,27 +153,38 @@
             this.totalBillableTimeLabel.AutoSize = true;
             this.totalBillableTimeLabel.Location = new System.Drawing.Point(171, 283);
             this.totalBillableTimeLabel.Name = "totalBillableTimeLabel";
-            this.totalBillableTimeLabel.Size = new System.Drawing.Size(98, 21);
+            this.totalBillableTimeLabel.Size = new System.Drawing.Size(80, 17);
             this.totalBillableTimeLabel.TabIndex = 5;
             this.totalBillableTimeLabel.Text = "Billable Time";
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(738, 279);
+            this.button1.Location = new System.Drawing.Point(940, 280);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(100, 23);
             this.button1.TabIndex = 6;
-            this.button1.Text = "Create CRM Task";
+            this.button1.Text = "CRM Sync";
             this.timeTrackerToolTip.SetToolTip(this.button1, "Create or updates a CRM task if the task name contains the case number");
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.CreateCaseTask);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(783, 279);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(146, 23);
+            this.button2.TabIndex = 7;
+            this.button2.Text = "Generate Thor Data";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.GenerateThorButton_Click);
+            // 
             // TimeTracker
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(878, 309);
+            this.ClientSize = new System.Drawing.Size(1062, 309);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.totalBillableTimeLabel);
             this.Controls.Add(this.totalTimeLabel);
@@ -209,6 +221,7 @@
         private System.Windows.Forms.Label totalBillableTimeLabel;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.ToolTip timeTrackerToolTip;
+        private System.Windows.Forms.Button button2;
     }
 }
 

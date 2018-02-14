@@ -14,6 +14,7 @@ using System.Xml;
 using TimeTracker.Adaptors;
 using TimeTracker.Common;
 using TimeTracker.Entity;
+using iTextSharp.text.pdf;
 
 namespace TimeTracker
 {
@@ -62,6 +63,19 @@ namespace TimeTracker
             CalcuateTotals();
         }
 
+        protected void isSynchedCheckBox_Click(object sender, EventArgs e)
+        {
+            CheckBox checkBox = (CheckBox)sender;
+            if(checkBox.Checked == true)
+            {
+                checkBox.BackColor = Color.Green;
+            }
+            else
+            {
+                checkBox.BackColor = Color.Red;
+            }
+        }
+
         protected void newItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CreateNewItem();
@@ -107,6 +121,8 @@ namespace TimeTracker
                     crmGuids[(int)item.index] = item.crmTaskId.ToString();
                     CheckBox submitted = this.Controls.Find(Constants.isSubmitted + item.index, true).FirstOrDefault() as CheckBox;
                     submitted.Checked = (bool)item.isCRMSubmitted;
+                    submitted.Appearance = Appearance.Button;
+                    submitted.BackColor = Color.Green;
                 }              
             }     
             AutoSave();
@@ -129,10 +145,17 @@ namespace TimeTracker
             session.isTimerActive = false;
             string element = "";
 
+            Label projectlabel = new Label();
+            projectlabel.Name = "ProjectLabel_" + session.index;
+            projectlabel.Text = "Project";
+            projectlabel.Location = new Point(3 + session.x, session.y);
+            projectlabel.Font = new Font(projectlabel.Font, FontStyle.Bold);
+            MainPanel.Controls.Add(projectlabel);
+
             Label titlelabel = new Label();
             titlelabel.Name = "titleLabel_" + session.index;
             titlelabel.Text = "Task Name";
-            titlelabel.Location = new Point(3 + session.x, session.y);
+            titlelabel.Location = new Point(130 + session.x, session.y);
             titlelabel.Font = new Font(titlelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(titlelabel);
 
@@ -140,14 +163,14 @@ namespace TimeTracker
             timelabel.Name = "timeLabel_" + session.index;
             timelabel.Text = "Time";
             timelabel.Width = 60;
-            timelabel.Location = new Point(220 + session.x, session.y);
+            timelabel.Location = new Point(420 + session.x, session.y);
             timelabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(timelabel);
 
             Label notelabel = new Label();
             notelabel.Name = "noteLabel_" + session.index;
             notelabel.Text = "Notes";
-            notelabel.Location = new Point(303 + session.x, session.y);
+            notelabel.Location = new Point(503 + session.x, session.y);
             notelabel.Font = new Font(notelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(notelabel);
 
@@ -155,15 +178,15 @@ namespace TimeTracker
             isBillableLabel.Name = "BillableLabel_" + session.index;
             isBillableLabel.Text = "Bill";
             isBillableLabel.Width = 30;
-            isBillableLabel.Location = new Point(738 + session.x, session.y);
+            isBillableLabel.Location = new Point(938 + session.x, session.y);
             isBillableLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(isBillableLabel);
 
             Label isCRMSubmittedLabel = new Label();
             isCRMSubmittedLabel.Name = "submittedLabel_" + session.index;
-            isCRMSubmittedLabel.Text = "CRM";
+            isCRMSubmittedLabel.Text = "Synched";
             isCRMSubmittedLabel.Width = 50;
-            isCRMSubmittedLabel.Location = new Point(770 + session.x, session.y);
+            isCRMSubmittedLabel.Location = new Point(970 + session.x, session.y);
             isCRMSubmittedLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             timeTrackerToolTip.SetToolTip(isCRMSubmittedLabel, "Does not update to CRM when checked");
             MainPanel.Controls.Add(isCRMSubmittedLabel);
@@ -186,6 +209,10 @@ namespace TimeTracker
                 {
                     switch (element)
                     {
+                        case "project": //Display the text in each element.
+                            TextBox projectText = this.Controls.Find(Constants.project + (session.index - 1), true).FirstOrDefault() as TextBox;
+                            projectText.Text = reader.Value;
+                            break;
                         case "title": //Display the text in each element.
                             TextBox titleText = this.Controls.Find(Constants.title + (session.index - 1), true).FirstOrDefault() as TextBox;
                             titleText.Text = reader.Value;
@@ -205,6 +232,7 @@ namespace TimeTracker
                         case "CRMSubmitted": //Display the end of the element.
                             CheckBox CRMSubmittedCheckBox = this.Controls.Find(Constants.isSubmitted + (session.index - 1), true).FirstOrDefault() as CheckBox;
                             CRMSubmittedCheckBox.Checked = Convert.ToBoolean(reader.Value);
+                            if(CRMSubmittedCheckBox.Checked == true) { CRMSubmittedCheckBox.BackColor = Color.Green; }
                             break;
                         case "CRMGuid": //Display the end of the element.
                             crmGuids[session.index - 1] = reader.Value;
@@ -268,6 +296,15 @@ namespace TimeTracker
             button.BackColor = System.Drawing.Color.Red;
             button.Enabled = true;
             session.isTimerActive = true;
+
+            //Set row to not sycnhed.
+            string ControlName = Constants.isSubmitted + session.activeIndex;
+
+            CheckBox isSubmittedCheckBox = this.Controls.Find(ControlName, true).FirstOrDefault() as CheckBox;
+            isSubmittedCheckBox.Checked = false;
+            isSubmittedCheckBox.Appearance = Appearance.Button;
+            isSubmittedCheckBox.BackColor = Color.Red;
+
         }
 
         protected void TimerStop(object sender, EventArgs e)
@@ -302,6 +339,7 @@ namespace TimeTracker
                 DigiClockTextBox.Text = answer;
 
                 CalcuateTotals();
+
             }
             catch 
             {
@@ -367,19 +405,26 @@ namespace TimeTracker
 
         private void CreateNewItem()
         {
+            TextBox projectTextBox = new TextBox();
+            projectTextBox.Name = Constants.project + session.index;
+            projectTextBox.Text = "";
+            projectTextBox.Width = 120;
+            projectTextBox.Location = new Point(3 + session.x, 14 + session.y);
+            MainPanel.Controls.Add(projectTextBox);
+
             //Create Project Title Textbox
             TextBox titleTextBox = new TextBox();
             titleTextBox.Name = Constants.title + session.index;
             titleTextBox.Text = "";
-            titleTextBox.Width = 120;
-            titleTextBox.Location = new Point(3 + session.x, 14 + session.y);
+            titleTextBox.Width = 195;
+            titleTextBox.Location = new Point(130 + session.x, 14 + session.y);
             MainPanel.Controls.Add(titleTextBox);
 
             //This block dynamically creates a Button and adds it to the form
             Button btn = new Button();
             btn.Name = "btn_" + session.index;
             btn.Text = "Start";
-            btn.Location = new Point(130 + session.x, 13 + session.y);
+            btn.Location = new Point(330 + session.x, 13 + session.y);
             btn.BackColor = System.Drawing.Color.White;
             btn.Click += new EventHandler(TimerStart);
             MainPanel.Controls.Add(btn);
@@ -388,7 +433,7 @@ namespace TimeTracker
             textBox.Name = Constants.time + session.index;
             textBox.Text = "00:00:00";
             textBox.Width = 60;
-            textBox.Location = new Point(220 + session.x, 14 + session.y);
+            textBox.Location = new Point(420 + session.x, 14 + session.y);
             MainPanel.Controls.Add(textBox);
 
             //Create Project Notes Textbox
@@ -396,13 +441,13 @@ namespace TimeTracker
             noteTextBox.Name = Constants.description + session.index;
             noteTextBox.Text = "";
             noteTextBox.Width = 430;
-            noteTextBox.Location = new Point(303 + session.x, 14 + session.y);
+            noteTextBox.Location = new Point(503 + session.x, 14 + session.y);
             MainPanel.Controls.Add(noteTextBox);
 
             //Create is Billable Checkbox
             CheckBox isBillableCheckBox = new CheckBox();
             isBillableCheckBox.Name = Constants.isBillable + session.index;
-            isBillableCheckBox.Location = new Point(743 + session.x, 14 + session.y);
+            isBillableCheckBox.Location = new Point(943 + session.x, 14 + session.y);
             isBillableCheckBox.Width = 30;
             isBillableCheckBox.Click += isBillableCheckBox_Click;
             MainPanel.Controls.Add(isBillableCheckBox);
@@ -410,8 +455,11 @@ namespace TimeTracker
             //Create is CRM Submitted Checkbox
             CheckBox isSubmittedCheckBox = new CheckBox();
             isSubmittedCheckBox.Name = Constants.isSubmitted + session.index;
-            isSubmittedCheckBox.Location = new Point(785 + session.x, 14 + session.y);
+            isSubmittedCheckBox.Location = new Point(985 + session.x, 14 + session.y);
             isSubmittedCheckBox.Width = 30;
+            isSubmittedCheckBox.Appearance = Appearance.Button;
+            isSubmittedCheckBox.BackColor = Color.Red;
+            isSubmittedCheckBox.Click += new System.EventHandler(this.isSynchedCheckBox_Click);
             MainPanel.Controls.Add(isSubmittedCheckBox);
 
             session.y += 21;
@@ -459,6 +507,7 @@ namespace TimeTracker
             int i = 0;
             while (i < session.totalLines)
             {
+                TextBox project = this.Controls.Find(Constants.project + i, true).FirstOrDefault() as TextBox;
                 TextBox title = this.Controls.Find(Constants.title + i, true).FirstOrDefault() as TextBox;
                 TextBox description = this.Controls.Find(Constants.description + i, true).FirstOrDefault() as TextBox;
                 TextBox time = this.Controls.Find(Constants.time + i, true).FirstOrDefault() as TextBox;
@@ -466,6 +515,7 @@ namespace TimeTracker
                 CheckBox submitted = this.Controls.Find(Constants.isSubmitted + i, true).FirstOrDefault() as CheckBox;
 
                 xml += "<line>";
+                xml += "<project>" + project.Text + "</project>";
                 xml += "<title>" + title.Text + "</title>";
                 xml += "<description>" + description.Text + "</description>";
                 xml += "<time>" + time.Text + "</time>";
@@ -486,10 +536,25 @@ namespace TimeTracker
 
         private void GetData()
         {
+            Label projectlabel = new Label();
+            projectlabel.Name = "projectLabel_" + session.index;
+            projectlabel.Text = "Project Name";
+            projectlabel.Location = new Point(3 + session.x, session.y);
+            projectlabel.Font = new Font(projectlabel.Font, FontStyle.Bold);
+            MainPanel.Controls.Add(projectlabel);
+
+            //Create Project Title Textbox
+            TextBox projectTextBox = new TextBox();
+            projectTextBox.Name = Constants.project + session.index;
+            projectTextBox.Text = "";
+            projectTextBox.Width = 120;
+            projectTextBox.Location = new Point(3 + session.x, 24 + session.y);
+            MainPanel.Controls.Add(projectTextBox);
+
             Label titlelabel = new Label();
             titlelabel.Name = "titleLabel_" + session.index;
             titlelabel.Text = "Task Name";
-            titlelabel.Location = new Point(3 + session.x, session.y);
+            titlelabel.Location = new Point(130 + session.x, session.y);
             titlelabel.Font = new Font(titlelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(titlelabel);
 
@@ -497,8 +562,8 @@ namespace TimeTracker
             TextBox titleTextBox = new TextBox();
             titleTextBox.Name = Constants.title + session.index;
             titleTextBox.Text = "";
-            titleTextBox.Width = 120;
-            titleTextBox.Location = new Point(3 + session.x, 24 + session.y);
+            titleTextBox.Width = 195;
+            titleTextBox.Location = new Point(130 + session.x, 24 + session.y);
             MainPanel.Controls.Add(titleTextBox);
 
 
@@ -506,7 +571,7 @@ namespace TimeTracker
             Button btn = new Button();
             btn.Name = "btn_" + session.index;
             btn.Text = "Start";
-            btn.Location = new Point(130 + session.x, 23 + session.y);
+            btn.Location = new Point(330 + session.x, 23 + session.y);
             btn.BackColor = System.Drawing.Color.White;
             btn.Click += new EventHandler(TimerStart);
             MainPanel.Controls.Add(btn);
@@ -515,7 +580,7 @@ namespace TimeTracker
             timelabel.Name = "timeLabel_" + session.index;
             timelabel.Text = "Time";
             timelabel.Width = 60;
-            timelabel.Location = new Point(220 + session.x, session.y);
+            timelabel.Location = new Point(420 + session.x, session.y);
             timelabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(timelabel);
 
@@ -524,13 +589,13 @@ namespace TimeTracker
             textBox.Name = Constants.time + session.index;
             textBox.Text = "00:00:00";
             textBox.Width = 60;
-            textBox.Location = new Point(220 + session.x, 24 + session.y);
+            textBox.Location = new Point(420 + session.x, 24 + session.y);
             MainPanel.Controls.Add(textBox);
 
             Label notelabel = new Label();
             notelabel.Name = "noteLabel_" + session.index;
             notelabel.Text = "Notes";
-            notelabel.Location = new Point(303 + session.x, session.y);
+            notelabel.Location = new Point(503 + session.x, session.y);
             notelabel.Font = new Font(notelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(notelabel);
 
@@ -539,30 +604,30 @@ namespace TimeTracker
             noteTextBox.Name = Constants.description + session.index;
             noteTextBox.Text = "";
             noteTextBox.Width = 430;
-            noteTextBox.Location = new Point(303 + session.x, 24 + session.y);
+            noteTextBox.Location = new Point(503 + session.x, 24 + session.y);
             MainPanel.Controls.Add(noteTextBox);
 
             Label isBillableLabel = new Label();
             isBillableLabel.Name = "BillableLabel_" + session.index;
             isBillableLabel.Text = "Bill";
             isBillableLabel.Width = 30;
-            isBillableLabel.Location = new Point(738 + session.x, session.y);
+            isBillableLabel.Location = new Point(938 + session.x, session.y);
             isBillableLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(isBillableLabel);
 
             //Create is Billable Checkbox
             CheckBox isBillableCheckBox = new CheckBox();
             isBillableCheckBox.Name = Constants.isBillable + session.index;
-            isBillableCheckBox.Location = new Point(743 + session.x, 24 + session.y);
+            isBillableCheckBox.Location = new Point(943 + session.x, 24 + session.y);
             isBillableCheckBox.Width = 30;
             isBillableCheckBox.Click += isBillableCheckBox_Click;
             MainPanel.Controls.Add(isBillableCheckBox);
 
             Label isCRMSubmittedLabel = new Label();
             isCRMSubmittedLabel.Name = "submittedLabel_" + session.index;
-            isCRMSubmittedLabel.Text = "CRM";
+            isCRMSubmittedLabel.Text = "Synched";
             isCRMSubmittedLabel.Width = 50;
-            isCRMSubmittedLabel.Location = new Point(770 + session.x, session.y);
+            isCRMSubmittedLabel.Location = new Point(970 + session.x, session.y);
             isCRMSubmittedLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             timeTrackerToolTip.SetToolTip(isCRMSubmittedLabel,"Does not update to CRM when checked");
             MainPanel.Controls.Add(isCRMSubmittedLabel);
@@ -570,8 +635,11 @@ namespace TimeTracker
             //Create is CRM Submitted Checkbox
             CheckBox isSubmittedCheckBox = new CheckBox();
             isSubmittedCheckBox.Name = Constants.isSubmitted + session.index;
-            isSubmittedCheckBox.Location = new Point(785 + session.x, 24 + session.y);
+            isSubmittedCheckBox.Location = new Point(985 + session.x, 24 + session.y);
             isSubmittedCheckBox.Width = 30;
+            isSubmittedCheckBox.Appearance = Appearance.Button;
+            isSubmittedCheckBox.BackColor = Color.Red;
+            isSubmittedCheckBox.Click += new System.EventHandler(this.isSynchedCheckBox_Click);
             MainPanel.Controls.Add(isSubmittedCheckBox);
 
             session.y += 31;
@@ -675,8 +743,98 @@ namespace TimeTracker
 
             return timeItems;
         }
- 
+
+        private void CreateThorPDF()
+        {
+
+            iTextSharp.text.Document document = new iTextSharp.text.Document();
+            string docName = "ThorDoc " + DateTime.Now.Month + "-" + DateTime.Now.Day + " " + DateTime.Now.Hour + DateTime.Now.Minute+DateTime.Now.Second+ ".pdf";
+            PdfWriter.GetInstance(document, new FileStream(docName, FileMode.Create));
+            document.Open();
+
+            int i = 0;
+
+            List<TimeItem> timeItemList = new List<TimeItem>();
+
+            while (i < session.totalLines)
+            {
+                TextBox project = this.Controls.Find(Constants.project + i, true).FirstOrDefault() as TextBox;
+                TextBox title = this.Controls.Find(Constants.title + i, true).FirstOrDefault() as TextBox;
+                TextBox description = this.Controls.Find(Constants.description + i, true).FirstOrDefault() as TextBox;
+                TextBox time = this.Controls.Find(Constants.time + i, true).FirstOrDefault() as TextBox;
+                CheckBox billable = this.Controls.Find(Constants.isBillable + i, true).FirstOrDefault() as CheckBox;
+                CheckBox submitted = this.Controls.Find(Constants.isSubmitted + i, true).FirstOrDefault() as CheckBox;
+
+                TimeItem timeItem = new TimeItem();
+                timeItem.project = project.Text;
+                timeItem.description = description.Text;
+                timeItem.isBillable = billable.Checked;
+                timeItem.time = time.Text;
+                timeItem.title = title.Text;
+                timeItem.isCRMSubmitted = submitted.Checked;
+
+                bool ismatch = false;
+                foreach (TimeItem ti in timeItemList)
+                {
+                    if (ti.project == timeItem.project && ti.isBillable == timeItem.isBillable)
+                    {
+                        ismatch = true;
+                        ti.description = timeItem.title+": " + ti.description + timeItem.description;
+                        decimal totalSeconds = ((decimal)(TimeSpan.Parse(ti.time).TotalSeconds) + ((decimal)TimeSpan.Parse(timeItem.time).TotalSeconds));
+                        TimeSpan t = TimeSpan.FromSeconds((double)totalSeconds);
+                        ti.time = string.Format("{0:D2}:{1:D2}:{2:D2}", t.Hours, t.Minutes, t.Seconds);
+                    }
+                }
+
+                if (ismatch == false)
+                {
+                    timeItem.description = timeItem.title + ":" + timeItem.description;
+                    timeItemList.Add(timeItem);
+                }
+
+                i++;
+
+            }
+
+            foreach (TimeItem ti in timeItemList)
+            {
+                iTextSharp.text.Paragraph h = new iTextSharp.text.Paragraph(ti.project, new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 18, iTextSharp.text.Font.BOLD));
+                string content = ti.description;
+                if (content.Length > 240)
+                {
+                    content = content.Substring(0, 212) + "[FULL DETAILS IN TICKET]";
+                }
+
+                iTextSharp.text.Paragraph p = new iTextSharp.text.Paragraph(content, new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.NORMAL));
+                iTextSharp.text.Paragraph b = new iTextSharp.text.Paragraph();
+
+                if (ti.isBillable == true)
+                {
+                    b = new iTextSharp.text.Paragraph("Billable Hours: " + TimeSpan.Parse(ti.time).TotalHours, new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.NORMAL));
+                }
+                else
+                {
+                    b = new iTextSharp.text.Paragraph("Non-Billable Hours: " + TimeSpan.Parse(ti.time).TotalHours, new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.NORMAL));
+                }
+                
+
+                document.Add(h);
+                document.Add(p);
+                document.Add(b);
+
+                
+            }
+              
+            document.Close();
+            System.Diagnostics.Process.Start(docName);
+
+        }
+
         #endregion
 
+        private void GenerateThorButton_Click(object sender, EventArgs e)
+        {
+            CreateThorPDF();
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace TimeTracker.Common
     {
         #region control constants
 
+        public const string project = "project_";
         public const string title = "title_";
         public const string description = "description_";
         public const string time = "time_";
