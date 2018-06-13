@@ -59,7 +59,7 @@
             this.createToolStripMenuItem});
             this.MainMenu.Location = new System.Drawing.Point(0, 0);
             this.MainMenu.Name = "MainMenu";
-            this.MainMenu.Size = new System.Drawing.Size(1062, 26);
+            this.MainMenu.Size = new System.Drawing.Size(1102, 26);
             this.MainMenu.TabIndex = 0;
             this.MainMenu.Text = "menuStrip1";
             // 
@@ -122,7 +122,7 @@
             this.MainPanel.AutoScroll = true;
             this.MainPanel.Location = new System.Drawing.Point(13, 28);
             this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Size = new System.Drawing.Size(1027, 245);
+            this.MainPanel.Size = new System.Drawing.Size(1100, 245);
             this.MainPanel.TabIndex = 1;
             // 
             // totalTimeTextBox
@@ -183,7 +183,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1062, 309);
+            this.ClientSize = new System.Drawing.Size(1102, 309);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.totalBillableTimeLabel);
