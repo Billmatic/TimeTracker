@@ -15,6 +15,7 @@ namespace TimeTracker.Common
         public const string description = "description_";
         public const string time = "time_";
         public const string isBillable = "isBillable_";
+        public const string isExternalComment = "isExternalComment_";
         public const string isSubmitted = "isSubmitted_";
 
         #endregion control constants

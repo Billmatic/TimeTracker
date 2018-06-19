@@ -16,11 +16,15 @@ namespace TimeTracker.Entity
 
         public bool? isBillable { get; set; }
 
+        public bool? isExternalComment { get; set; }
+
         public bool? isCRMSubmitted { get; set; }
 
         public int? index { get; set; }
 
         public Guid? crmTaskId { get; set; }
+
+        public Guid? crmExternalCommentId { get; set; }
 
         public string project { get; set; }
     }

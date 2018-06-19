@@ -81,6 +81,109 @@ namespace TimeTracker.Adaptors
             }
         }
 
+        public bool? DeactivateExternalCommentInCRM(TimeItem timeItem)
+        {
+            try
+            {
+                Microsoft.Xrm.Sdk.Entity comment = _service.Retrieve("hsal_externalcomments", (Guid)timeItem.crmExternalCommentId, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+
+                Microsoft.Crm.Sdk.Messages.SetStateRequest req = new Microsoft.Crm.Sdk.Messages.SetStateRequest();
+                req.EntityMoniker = new Microsoft.Xrm.Sdk.EntityReference("hsal_externalcomments", comment.Id);
+                req.State = new Microsoft.Xrm.Sdk.OptionSetValue(2);
+                req.Status = new Microsoft.Xrm.Sdk.OptionSetValue((-1));
+                _service.Execute(req);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //log error
+                return false;
+            }
+        }
+
+        public bool? UpdateExternalCommentInCRM(string ticketnumber, TimeItem timeItem)
+        {
+            try
+            {
+                Microsoft.Xrm.Sdk.Entity comment = _service.Retrieve("hsal_externalcomments", (Guid)timeItem.crmExternalCommentId, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+
+                Microsoft.Crm.Sdk.Messages.SetStateRequest req = new Microsoft.Crm.Sdk.Messages.SetStateRequest();
+                req.EntityMoniker = new Microsoft.Xrm.Sdk.EntityReference("hsal_externalcomments", comment.Id);
+                req.State = new Microsoft.Xrm.Sdk.OptionSetValue(0);
+                req.Status = new Microsoft.Xrm.Sdk.OptionSetValue((-1));
+                _service.Execute(req);
+
+                if (timeItem.title != null)
+                {
+                    comment["subject"] = timeItem.title.Replace(ticketnumber, "");
+                }
+
+                if (timeItem.description != null)
+                {
+                    comment["description"] = timeItem.description;
+                }
+
+                _service.Update(comment);
+
+                req.EntityMoniker = new Microsoft.Xrm.Sdk.EntityReference("hsal_externalcomments", comment.Id);
+                req.State = new Microsoft.Xrm.Sdk.OptionSetValue(1);
+                req.Status = new Microsoft.Xrm.Sdk.OptionSetValue((2));
+                _service.Execute(req);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //log error
+                return false;
+            }
+        }
+
+        public Guid? CreateExternalComment(string ticketnumber, TimeItem timeItem)
+        {
+            try
+            {
+                Microsoft.Xrm.Sdk.Query.QueryExpression GetCasesByTicketNumber = new Microsoft.Xrm.Sdk.Query.QueryExpression { EntityName = "incident", ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet(true) };
+                GetCasesByTicketNumber.Criteria.AddCondition("ticketnumber", Microsoft.Xrm.Sdk.Query.ConditionOperator.Equal, ticketnumber);
+                Microsoft.Xrm.Sdk.EntityCollection CaseResults = _service.RetrieveMultiple(GetCasesByTicketNumber);
+
+                if (CaseResults.Entities.Count < 1)
+                {
+                    return null;
+                }
+
+                Microsoft.Xrm.Sdk.Entity comment = new Microsoft.Xrm.Sdk.Entity("hsal_externalcomments");
+
+                if (timeItem.title != null)
+                {
+                    comment["subject"] = timeItem.title.Replace(ticketnumber, "");
+                }
+
+                if (timeItem.description != null)
+                {
+                    comment["description"] = timeItem.description;
+                }
+
+                comment["regardingobjectid"] = CaseResults.Entities[0].ToEntityReference();
+
+                Guid externalCommentId = _service.Create(comment);
+
+                Microsoft.Crm.Sdk.Messages.SetStateRequest req = new Microsoft.Crm.Sdk.Messages.SetStateRequest();
+                req.EntityMoniker = new Microsoft.Xrm.Sdk.EntityReference("hsal_externalcomments", externalCommentId);
+                req.State = new Microsoft.Xrm.Sdk.OptionSetValue(1);
+                req.Status = new Microsoft.Xrm.Sdk.OptionSetValue((2));
+                _service.Execute(req);
+
+                return externalCommentId;
+            }
+            catch (Exception ex)
+            {
+                //log error
+                return null;
+            }
+        }
+
         public Guid? CreateTaskToCRMIncident(string ticketnumber, TimeItem timeItem)
         {
             try
@@ -162,7 +265,27 @@ namespace TimeTracker.Adaptors
                         else
                         {
                             item.crmTaskId = CreateTaskToCRMIncident(word, item);
-                            item.isCRMSubmitted = true;
+
+                            item.isCRMSubmitted = item.crmTaskId != null? true : false;
+                        }
+
+                        if (item.crmExternalCommentId != null)
+                        {
+                            if (item.isExternalComment == true)
+                            {
+                                UpdateExternalCommentInCRM(word, item);
+                            }
+                            else
+                            {
+                                DeactivateExternalCommentInCRM(item);
+                            }
+                        }
+                        else
+                        {
+                            if (item.isExternalComment == true)
+                            {
+                                item.crmExternalCommentId = CreateExternalComment(word, item);
+                            }
                         }                   
                     }
                 }

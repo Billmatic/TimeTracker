@@ -25,6 +25,7 @@ namespace TimeTracker
         Session session;
         CRMAdaptor crmAdaptor;
         string[] crmGuids = new string[30];
+        string[] crmExternalCommentGuids = new string[30];
 
         /// <summary>
         /// The timer
@@ -99,6 +100,7 @@ namespace TimeTracker
                 totalTimeTextBox.Text = "";
                 billableTimeTextBox.Text = "";
                 crmGuids = new string[30];
+                crmExternalCommentGuids = new string[30];
             }
             else if (dialogResult == DialogResult.No)
             {
@@ -118,7 +120,8 @@ namespace TimeTracker
             {
                 if (item.crmTaskId != null)
                 {
-                    crmGuids[(int)item.index] = item.crmTaskId.ToString();
+                    crmGuids[(int)item.index] = item.crmTaskId != null? item.crmTaskId.ToString(): null;
+                    crmExternalCommentGuids[(int)item.index] = item.crmExternalCommentId != null? item.crmExternalCommentId.ToString(): null;
                     CheckBox submitted = this.Controls.Find(Constants.isSubmitted + item.index, true).FirstOrDefault() as CheckBox;
                     submitted.Checked = (bool)item.isCRMSubmitted;
                     submitted.Appearance = Appearance.Button;
@@ -134,6 +137,7 @@ namespace TimeTracker
         {
             // Get file name.
             crmGuids = new string[30];
+            crmExternalCommentGuids = new string[30];
             session.fileDirectory = openDialog.FileName;
             XmlTextReader reader = new XmlTextReader(session.fileDirectory);
             MainPanel.Controls.Clear(); //to remove all controls
@@ -187,12 +191,21 @@ namespace TimeTracker
             isBillableLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             MainPanel.Controls.Add(isBillableLabel);
 
+            Label isExternalLabel = new Label();
+            isExternalLabel.Name = "externalCommentLabel_" + session.index;
+            isExternalLabel.Text = "Ext.\nComm.";
+            isExternalLabel.Width = 50;
+            isExternalLabel.Height = 30;
+            isExternalLabel.Location = new Point(970 + session.x, session.y);
+            isExternalLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
+            MainPanel.Controls.Add(isExternalLabel);
+
             Label isCRMSubmittedLabel = new Label();
             isCRMSubmittedLabel.Name = "submittedLabel_" + session.index;
             isCRMSubmittedLabel.Text = "CRM \nSynched";
             isCRMSubmittedLabel.Width = 100;
             isCRMSubmittedLabel.Height = 30;
-            isCRMSubmittedLabel.Location = new Point(970 + session.x, session.y);
+            isCRMSubmittedLabel.Location = new Point(1040 + session.x, session.y);
             isCRMSubmittedLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             timeTrackerToolTip.SetToolTip(isCRMSubmittedLabel, "Does not update to CRM when checked");
             MainPanel.Controls.Add(isCRMSubmittedLabel);
@@ -235,6 +248,10 @@ namespace TimeTracker
                             CheckBox billableCheckBox = this.Controls.Find(Constants.isBillable + (session.index - 1), true).FirstOrDefault() as CheckBox;
                             billableCheckBox.Checked = Convert.ToBoolean(reader.Value);
                             break;
+                        case "externalcomment": //Display the end of the element.
+                            CheckBox externalCommentCheckBox = this.Controls.Find(Constants.isExternalComment + (session.index - 1), true).FirstOrDefault() as CheckBox;
+                            externalCommentCheckBox.Checked = Convert.ToBoolean(reader.Value);
+                            break;
                         case "CRMSubmitted": //Display the end of the element.
                             CheckBox CRMSubmittedCheckBox = this.Controls.Find(Constants.isSubmitted + (session.index - 1), true).FirstOrDefault() as CheckBox;
                             CRMSubmittedCheckBox.Checked = Convert.ToBoolean(reader.Value);
@@ -242,6 +259,9 @@ namespace TimeTracker
                             break;
                         case "CRMGuid": //Display the end of the element.
                             crmGuids[session.index - 1] = reader.Value;
+                            break;
+                        case "crmExternalCommentId": //Display the end of the element.
+                            crmExternalCommentGuids[session.index - 1] = reader.Value;
                             break;
                     }
 
@@ -459,10 +479,17 @@ namespace TimeTracker
             isBillableCheckBox.Click += isBillableCheckBox_Click;
             MainPanel.Controls.Add(isBillableCheckBox);
 
+            //Create is Ezternal Checkbox
+            CheckBox isExternalCheckBox = new CheckBox();
+            isExternalCheckBox.Name = Constants.isExternalComment + session.index;
+            isExternalCheckBox.Location = new Point(975 + session.x, 14 + session.y);
+            isExternalCheckBox.Width = 30;
+            MainPanel.Controls.Add(isExternalCheckBox);
+
             //Create is CRM Submitted Checkbox
             CheckBox isSubmittedCheckBox = new CheckBox();
             isSubmittedCheckBox.Name = Constants.isSubmitted + session.index;
-            isSubmittedCheckBox.Location = new Point(985 + session.x, 14 + session.y);
+            isSubmittedCheckBox.Location = new Point(1040 + session.x, 14 + session.y);
             isSubmittedCheckBox.Width = 30;
             isSubmittedCheckBox.Appearance = Appearance.Button;
             isSubmittedCheckBox.BackColor = Color.Red;
@@ -531,6 +558,13 @@ namespace TimeTracker
                 if (crmGuids[i] != null)
                 {
                     xml += "<CRMGuid>" + crmGuids[i].ToString() + "</CRMGuid>";
+                }
+
+                xml += "<externalcomment>" + billable.Checked + "</externalcomment>";
+
+                if (crmExternalCommentGuids[i] != null)
+                {
+                    xml += "<crmExternalCommentId>" + crmExternalCommentGuids[i].ToString() + "</crmExternalCommentId>";
                 }
                 xml += "</line>";
 
@@ -636,12 +670,28 @@ namespace TimeTracker
             isBillableCheckBox.Click += isBillableCheckBox_Click;
             MainPanel.Controls.Add(isBillableCheckBox);
 
+            Label isExternalLabel = new Label();
+            isExternalLabel.Name = "externalCommentLabel_" + session.index;
+            isExternalLabel.Text = "Ext.\nComm.";
+            isExternalLabel.Width = 50;
+            isExternalLabel.Height = 30;
+            isExternalLabel.Location = new Point(970 + session.x, session.y);
+            isExternalLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
+            MainPanel.Controls.Add(isExternalLabel);
+
+            //Create is Ezternal Checkbox
+            CheckBox isExternalCheckBox = new CheckBox();
+            isExternalCheckBox.Name = Constants.isExternalComment + session.index;
+            isExternalCheckBox.Location = new Point(975 + session.x, 30 + session.y);
+            isExternalCheckBox.Width = 30;
+            MainPanel.Controls.Add(isExternalCheckBox);
+
             Label isCRMSubmittedLabel = new Label();
             isCRMSubmittedLabel.Name = "submittedLabel_" + session.index;
             isCRMSubmittedLabel.Text = "CRM \nSynched";
             isCRMSubmittedLabel.Width = 100;
             isCRMSubmittedLabel.Height = 30;
-            isCRMSubmittedLabel.Location = new Point(970 + session.x, session.y);
+            isCRMSubmittedLabel.Location = new Point(1030 + session.x, session.y);
             isCRMSubmittedLabel.Font = new Font(timelabel.Font, FontStyle.Bold);
             timeTrackerToolTip.SetToolTip(isCRMSubmittedLabel,"Does not update to CRM when checked");
             MainPanel.Controls.Add(isCRMSubmittedLabel);
@@ -649,7 +699,7 @@ namespace TimeTracker
             //Create is CRM Submitted Checkbox
             CheckBox isSubmittedCheckBox = new CheckBox();
             isSubmittedCheckBox.Name = Constants.isSubmitted + session.index;
-            isSubmittedCheckBox.Location = new Point(985 + session.x, 30 + session.y);
+            isSubmittedCheckBox.Location = new Point(1040 + session.x, 30 + session.y);
             isSubmittedCheckBox.Width = 30;
             isSubmittedCheckBox.Appearance = Appearance.Button;
             isSubmittedCheckBox.BackColor = Color.Red;
@@ -701,6 +751,7 @@ namespace TimeTracker
             MaskedTextBox time = this.Controls.Find(Constants.time + session.activeIndex, true).FirstOrDefault() as MaskedTextBox;
             CheckBox billable = this.Controls.Find(Constants.isBillable + session.activeIndex, true).FirstOrDefault() as CheckBox;
             CheckBox submitted = this.Controls.Find(Constants.isSubmitted + session.activeIndex, true).FirstOrDefault() as CheckBox;
+            CheckBox externalComment = this.Controls.Find(Constants.isExternalComment + session.activeIndex, true).FirstOrDefault() as CheckBox;
 
             TimeItem timeItem = new TimeItem();
 
@@ -709,6 +760,7 @@ namespace TimeTracker
             timeItem.time = time.Text;
             timeItem.title = title.Text;
             timeItem.isCRMSubmitted = submitted.Checked;
+            timeItem.isExternalComment = externalComment.Checked;
 
             return timeItem;
         }
@@ -724,6 +776,7 @@ namespace TimeTracker
             MaskedTextBox time = new MaskedTextBox();
             CheckBox billable = new CheckBox();
             CheckBox submitted = new CheckBox();
+            CheckBox externalComment = new CheckBox();
 
 
             List<TimeItem> timeItems = new List<TimeItem>();
@@ -736,19 +789,27 @@ namespace TimeTracker
                 description = this.Controls.Find(Constants.description + i, true).FirstOrDefault() as TextBox;
                 time = this.Controls.Find(Constants.time + i, true).FirstOrDefault() as MaskedTextBox;
                 billable = this.Controls.Find(Constants.isBillable + i, true).FirstOrDefault() as CheckBox;
+                externalComment = this.Controls.Find(Constants.isExternalComment + i, true).FirstOrDefault() as CheckBox;
                 submitted = this.Controls.Find(Constants.isSubmitted + i, true).FirstOrDefault() as CheckBox;
+                
 
                 timeItem.description = description.Text;
                 timeItem.isBillable = billable.Checked;
                 timeItem.time = time.Text;
                 timeItem.title = title.Text;
                 timeItem.isCRMSubmitted = submitted.Checked;
+                timeItem.isExternalComment = externalComment.Checked;
 
                 if (crmGuids[i] != null)
                 {
                     timeItem.crmTaskId = new Guid(crmGuids[i]);
                 }
-                
+
+                if (crmExternalCommentGuids[i] != null)
+                {
+                    timeItem.crmExternalCommentId = new Guid(crmExternalCommentGuids[i]);
+                }
+
                 timeItem.index = i;
 
                 timeItems.Add(timeItem);
