@@ -63,7 +63,6 @@ namespace TimeTracker.Adaptors
                     followup["hsal_nonbillableduration"] = (int)TimeSpan.Parse(timeItem.time).TotalMinutes;
                 }
 
-                followup["actualstart"] = DateTime.UtcNow;
 
                 _service.Update(followup);
 
