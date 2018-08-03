@@ -18,6 +18,12 @@ namespace TimeTracker.Common
         public const string isExternalComment = "isExternalComment_";
         public const string isSubmitted = "isSubmitted_";
 
+        public const string MODE_JARVIS = "JAR";
+        public const string MODE_CRM_DEFAULT = "CRM";
+        public const string MODE_DEFAULT = "DEF";
+
+        public const string JarvisOrgURI = "https://csp.api.crm.dynamics.com/XRMServices/2011/Organization.svc";
+
         #endregion control constants
 
         #region regular expressions

@@ -42,6 +42,8 @@ namespace TimeTracker
         /// </summary>
         private Timer timer1 = new System.Windows.Forms.Timer();
 
+        public string TimeTrackerMode = Constants.MODE_DEFAULT;
+
         /// <summary>
         /// To open a save dialog
         /// </summary>
@@ -59,6 +61,7 @@ namespace TimeTracker
         {
             this.session = new Session();
             this.crmAdaptor = new CRMAdaptor();
+            GetTimeTrackerMode(crmAdaptor.OrganizationUri);
             timer1.Interval = 1000;
             timer1.Tick += Timer_Tick;
             InitializeComponent();
@@ -71,6 +74,22 @@ namespace TimeTracker
         protected void isBillableCheckBox_Click(object sender, EventArgs e)
         {
             CalcuateTotals();
+        }
+
+        private void GetTimeTrackerMode(Uri crmUri)
+        {
+            if (crmUri == null)
+            {
+                this.TimeTrackerMode = Constants.MODE_DEFAULT;
+            }
+            else if (crmUri.ToString() == Constants.JarvisOrgURI)
+            {
+                this.TimeTrackerMode = Constants.MODE_JARVIS;
+            }
+            else
+            {
+                this.TimeTrackerMode = Constants.MODE_CRM_DEFAULT;
+            }
         }
 
         protected void isSynchedCheckBox_Click(object sender, EventArgs e)
@@ -222,10 +241,36 @@ namespace TimeTracker
                     }
 
                     CalcuateTotals();
+                    HideControlsByMode(this.TimeTrackerMode);
                 }
             }
 
             reader.Close();
+        }
+
+        private void HideControlsByMode(string mode)
+        {
+            if (mode == Constants.MODE_DEFAULT)
+            {
+                Label externalCommentLabel = this.Controls.Find("externalCommentLabel_0", true).FirstOrDefault() as Label;
+                externalCommentLabel.Visible = false;
+
+                Label CRMSubmittedLabel = this.Controls.Find("submittedLabel_0", true).FirstOrDefault() as Label;
+                CRMSubmittedLabel.Visible = false;
+
+                button1.Visible = false;
+
+                for (int i = 0; i<= session.index-1;i++)
+                {
+                    CheckBox externalCommentCheckBox = this.Controls.Find(Constants.isExternalComment + (session.index - 1), true).FirstOrDefault() as CheckBox;
+                    externalCommentCheckBox.Visible = false;
+                    CheckBox CRMSubmittedCheckBox = this.Controls.Find(Constants.isSubmitted + (session.index - 1), true).FirstOrDefault() as CheckBox;
+                    CRMSubmittedCheckBox.Visible = false;
+                }
+
+                this.Width = 1020;
+
+            }
         }
 
         protected void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -408,6 +453,8 @@ namespace TimeTracker
                 button.Enabled = true;
                 button.BackColor = System.Drawing.Color.Red;
             }
+
+            HideControlsByMode(this.TimeTrackerMode);
         }
 
         private void DisableAllButtons()
@@ -576,6 +623,8 @@ namespace TimeTracker
                 button.Enabled = true;
                 button.BackColor = System.Drawing.Color.Red;
             }
+
+            HideControlsByMode(this.TimeTrackerMode);
         }
 
         private TimeItem BuildTimeItem()
