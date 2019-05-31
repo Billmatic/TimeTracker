@@ -1,33 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel.Description;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using TimeTracker.Common;
 using TimeTracker.Entity;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk;
-
+using System.Windows.Forms;
+using Microsoft.Xrm.Sdk.WebServiceClient;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace TimeTracker.Adaptors
 {
     public class CRMAdaptor
     {
-        public Uri OrganizationUri;
-
-        ClientCredentials DeviceCrednetials;
+        public Guid license;
         ClientCredentials Credentials;
-        OrganizationServiceProxy _serviceProxy;
-
         IOrganizationService _service;
 
         #region Public Methods
         public CRMAdaptor()
         {
-            GetCRMConnection();
+            
         }
 
         public bool? UpdateTaskInCRM(string ticketnumber, TimeItem timeItem)
@@ -76,7 +71,7 @@ namespace TimeTracker.Adaptors
             catch(Exception ex)
             {
                 //log error
-                return false;
+                throw ex;
             }
         }
 
@@ -97,7 +92,7 @@ namespace TimeTracker.Adaptors
             catch (Exception ex)
             {
                 //log error
-                return false;
+                throw ex;
             }
         }
 
@@ -135,7 +130,7 @@ namespace TimeTracker.Adaptors
             catch (Exception ex)
             {
                 //log error
-                return false;
+                throw ex;
             }
         }
 
@@ -179,7 +174,7 @@ namespace TimeTracker.Adaptors
             catch (Exception ex)
             {
                 //log error
-                return null;
+                throw ex;
             }
         }
 
@@ -236,7 +231,7 @@ namespace TimeTracker.Adaptors
             catch (Exception ex)
             {
                 //log error
-                return null;
+                throw ex;
             }
         }
 
@@ -252,41 +247,49 @@ namespace TimeTracker.Adaptors
 
             foreach (TimeItem item in timeItems)
             {
-                String[] itemTitleParsed = item.title.Split((string[])null, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string word in itemTitleParsed)
+                try
                 {
-                    if (r.Match(word).Success && item.isCRMSubmitted == false)
+                    String[] itemTitleParsed = item.title.Split((string[])null, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string word in itemTitleParsed)
                     {
-                        if (item.crmTaskId != null)
+                        if (r.Match(word).Success && item.isCRMSubmitted == false)
                         {
-                            item.isCRMSubmitted = UpdateTaskInCRM(word, item);
-                        }
-                        else
-                        {
-                            item.crmTaskId = CreateTaskToCRMIncident(word, item);
-
-                            item.isCRMSubmitted = item.crmTaskId != null? true : false;
-                        }
-
-                        if (item.crmExternalCommentId != null)
-                        {
-                            if (item.isExternalComment == true)
+                            if (item.crmTaskId != null)
                             {
-                                UpdateExternalCommentInCRM(word, item);
+                                item.isCRMSubmitted = UpdateTaskInCRM(word, item);
                             }
                             else
                             {
-                                DeactivateExternalCommentInCRM(item);
+                                item.crmTaskId = CreateTaskToCRMIncident(word, item);
+
+                                item.isCRMSubmitted = item.crmTaskId != null ? true : false;
+                            }
+
+                            if (item.crmExternalCommentId != null)
+                            {
+                                if (item.isExternalComment == true)
+                                {
+                                    UpdateExternalCommentInCRM(word, item);
+                                }
+                                else
+                                {
+                                    DeactivateExternalCommentInCRM(item);
+                                }
+                            }
+                            else
+                            {
+                                if (item.isExternalComment == true)
+                                {
+                                    item.crmExternalCommentId = CreateExternalComment(word, item);
+                                }
                             }
                         }
-                        else
-                        {
-                            if (item.isExternalComment == true)
-                            {
-                                item.crmExternalCommentId = CreateExternalComment(word, item);
-                            }
-                        }                   
                     }
+
+                }
+                catch(Exception ex)
+                {
+                    throw ex;
                 }
             }
             return timeItems;
@@ -295,9 +298,8 @@ namespace TimeTracker.Adaptors
         #endregion Public Methods
 
         #region Private Methods
-        private void GetCRMConnection()
+        public bool GetCRMConnection()
         {
-            DeviceCrednetials = null;
             Credentials = new ClientCredentials();
             try
             {
@@ -314,14 +316,13 @@ namespace TimeTracker.Adaptors
                     {
                         switch (element)
                         {
-                            case "crmorganizationservice": //Display the text in each element.
-                                OrganizationUri = new Uri(reader.Value);
-                                break;
-                            case "username": //Display the end of the element.
-                                Credentials.UserName.UserName = reader.Value;
-                                break;
-                            case "password": //Display the end of the element.
-                                Credentials.UserName.Password = reader.Value;
+                            case "userlicence": //Display the text in each element.
+                                bool isValid = Guid.TryParse(reader.Value, out license);
+                                if (!isValid)
+                                {
+                                    MessageBox.Show("The license is in an invalid format.  Time Tracker will not be able to sycn to JARVIS");
+                                    return false;
+                                }
                                 break;
                         }
 
@@ -330,22 +331,44 @@ namespace TimeTracker.Adaptors
 
                 reader.Close();
 
-                _serviceProxy = new Microsoft.Xrm.Sdk.Client.OrganizationServiceProxy(OrganizationUri, null, Credentials, DeviceCrednetials);
-                _serviceProxy.EnableProxyTypes();
+                string organizationUrl = "https://csp.crm.dynamics.com";
+                string resourceURL = "https://csp.api.crm.dynamics.com" + "/api/data/";
+                string clientId = "c4e4407b-66d1-4452-9b05-db0a0ce9baef"; // Client Id
+                string appKey = "Sy[?Mk106C2OvHXZ:Krytwj=_XN_KKlh"; //Client Secret
 
-                _service = (Microsoft.Xrm.Sdk.IOrganizationService)_serviceProxy;
+                //Create the Client credentials to pass for authentication
+                Microsoft.IdentityModel.Clients.ActiveDirectory.ClientCredential clientcred = new Microsoft.IdentityModel.Clients.ActiveDirectory.ClientCredential(clientId, appKey);
+
+                //get the authentication parameters
+                Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationParameters authParam = Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationParameters.CreateFromResourceUrlAsync(new Uri(resourceURL)).Result;
+
+                //Generate the authentication context - this is the azure login url specific to the tenant
+                string authority = authParam.Authority;
+
+                //request token
+                AuthenticationResult authenticationResult = new AuthenticationContext(authority).AcquireTokenAsync(organizationUrl, clientcred).Result;
+
+                //get the token              
+                string token = authenticationResult.AccessToken;
+
+                Uri serviceUrl = new Uri(organizationUrl + @"/xrmservices/2011/organization.svc/web?SdkClientVersion=9.1");
+                OrganizationWebProxyClient sdkService;
+
+                sdkService = new OrganizationWebProxyClient(serviceUrl, false);
+                sdkService.CallerId = license;
+                sdkService.HeaderToken = token;
+
+                _service = (Microsoft.Xrm.Sdk.IOrganizationService)sdkService != null ? (Microsoft.Xrm.Sdk.IOrganizationService)sdkService : null;
+                Microsoft.Xrm.Sdk.Entity user = _service.Retrieve("systemuser", license, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+                return true;
+
             }
             catch(Exception ex)
             {
-                string exeption = ex.Message;
+                MessageBox.Show("You do not have a valid license for JARIVS and will not be able to sync your time");
+                return false;
             }
         }
         #endregion Private Methods
-
-        
-
-        
-
-        
     }
 }

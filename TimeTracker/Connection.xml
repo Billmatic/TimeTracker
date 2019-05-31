@@ -1,6 +1,4 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <connection>
-<crmorganizationservice>https://csp.api.crm.dynamics.com/XRMServices/2011/Organization.svc</crmorganizationservice>
-<username>username@hsdyn.com</username>
-<password>typepasswordhere</password>
+<userlicence>A9D51F0B-B11B-E611-80E0-5065F38AA901</userlicence>
 </connection>

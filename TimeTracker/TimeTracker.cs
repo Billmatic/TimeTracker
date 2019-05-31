@@ -10,6 +10,8 @@ using TimeTracker.Adaptors;
 using TimeTracker.Common;
 using TimeTracker.Entity;
 using iTextSharp.text.pdf;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Xrm.Sdk.WebServiceClient;
 
 namespace TimeTracker
 {
@@ -61,7 +63,8 @@ namespace TimeTracker
         {
             this.session = new Session();
             this.crmAdaptor = new CRMAdaptor();
-            GetTimeTrackerMode(crmAdaptor.OrganizationUri);
+            this.crmAdaptor.GetCRMConnection();
+            GetTimeTrackerMode(new Uri("https://csp.api.crm.dynamics.com/XRMServices/2011/Organization.svc"));
             timer1.Interval = 1000;
             timer1.Tick += Timer_Tick;
             InitializeComponent();
@@ -139,26 +142,41 @@ namespace TimeTracker
 
         protected void CreateCaseTask(object sender, EventArgs e)
         {
-            Cursor.Current = Cursors.WaitCursor;
-
-            List<TimeItem> workItems = MapTimeItems();
-            workItems = crmAdaptor.CreateCaseTask(workItems);
-
-            foreach (TimeItem item in workItems)
+            try
             {
-                if (item.crmTaskId != null)
-                {
-                    crmGuids[(int)item.index] = item.crmTaskId != null? item.crmTaskId.ToString(): null;
-                    crmExternalCommentGuids[(int)item.index] = item.crmExternalCommentId != null? item.crmExternalCommentId.ToString(): null;
-                    CheckBox submitted = this.Controls.Find(Constants.isSubmitted + item.index, true).FirstOrDefault() as CheckBox;
-                    submitted.Checked = (bool)item.isCRMSubmitted;
-                    submitted.Appearance = Appearance.Button;
-                    submitted.BackColor = Color.Green;
-                }              
-            }     
-            AutoSave();
+                CRMAdaptor crmAdaptor = new CRMAdaptor();
+                bool isValid = crmAdaptor.GetCRMConnection();
 
-            Cursor.Current = Cursors.Default;
+                if (!isValid)
+                {
+                    return;
+                }
+
+                Cursor.Current = Cursors.WaitCursor;
+
+                List<TimeItem> workItems = MapTimeItems();
+                workItems = crmAdaptor.CreateCaseTask(workItems);
+
+                foreach (TimeItem item in workItems)
+                {
+                    if (item.crmTaskId != null)
+                    {
+                        crmGuids[(int)item.index] = item.crmTaskId != null ? item.crmTaskId.ToString() : null;
+                        crmExternalCommentGuids[(int)item.index] = item.crmExternalCommentId != null ? item.crmExternalCommentId.ToString() : null;
+                        CheckBox submitted = this.Controls.Find(Constants.isSubmitted + item.index, true).FirstOrDefault() as CheckBox;
+                        submitted.Checked = (bool)item.isCRMSubmitted;
+                        submitted.Appearance = Appearance.Button;
+                        submitted.BackColor = Color.Green;
+                    }
+                }
+                AutoSave();
+
+                Cursor.Current = Cursors.Default;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message+"\n"+ex.InnerException.Message);
+            }
         }
 
         protected void openFileDialog_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
@@ -786,5 +804,45 @@ namespace TimeTracker
         {
             CreateThorPDF();
         }
+
+        private void testConnection()
+        {
+            string organizationUrl = "https://csp-build.crm.dynamics.com";
+            string resourceURL = "https://csp-build.api.crm.dynamics.com" + "/api/data/";
+            string clientId = "c4e4407b-66d1-4452-9b05-db0a0ce9baef"; // Client Id
+            string appKey = "Sy[?Mk106C2OvHXZ:Krytwj=_XN_KKlh"; //Client Secret
+
+            //Create the Client credentials to pass for authentication
+            ClientCredential clientcred = new ClientCredential(clientId, appKey);
+           
+
+            //get the authentication parameters
+            AuthenticationParameters authParam = AuthenticationParameters.CreateFromResourceUrlAsync(new Uri(resourceURL)).Result;
+
+            //Generate the authentication context - this is the azure login url specific to the tenant
+            string authority = authParam.Authority;
+
+            //request token
+            AuthenticationResult authenticationResult = new AuthenticationContext(authority).AcquireTokenAsync(organizationUrl, clientcred).Result;
+
+            //get the token              
+            string token = authenticationResult.AccessToken;
+
+            Uri serviceUrl = new Uri(organizationUrl + @"/xrmservices/2011/organization.svc/web?SdkClientVersion=9.1");
+            OrganizationWebProxyClient sdkService;
+            Microsoft.Xrm.Sdk.IOrganizationService _orgService;
+            
+            sdkService = new OrganizationWebProxyClient(serviceUrl, false);
+            sdkService.CallerId = new Guid("{A9D51F0B-B11B-E611-80E0-5065F38AA901}");
+            sdkService.HeaderToken = token;
+
+            _orgService = (Microsoft.Xrm.Sdk.IOrganizationService)sdkService != null ? (Microsoft.Xrm.Sdk.IOrganizationService)sdkService : null;
+
+            
+            Microsoft.Xrm.Sdk.Entity user = _orgService.Retrieve("systemuser", new Guid("{A9D51F0B-B11B-E611-80E0-5065F38AA901}"), new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+        }
+
+
+
     }
 }
