@@ -28,7 +28,7 @@ namespace TimeTracker.Common
 
         #region regular expressions
 
-        public const string HLSCaseNumberRegex = @"^HLS-[0-9]{5}-[a-zA-Z0-9]{6}";
+        public const string HLSCaseNumberRegex = @"^HLS-[0-9]{5}-[a-zA-Z0-9]{4,6}";
 
         #endregion regulare expressions
 

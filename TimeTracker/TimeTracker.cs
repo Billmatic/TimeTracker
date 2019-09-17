@@ -770,9 +770,9 @@ namespace TimeTracker
             {
                 iTextSharp.text.Paragraph h = new iTextSharp.text.Paragraph(ti.project, new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 18, iTextSharp.text.Font.BOLD));
                 string content = ti.description;
-                if (content.Length > 240)
+                if (content.Length > 254)
                 {
-                    content = content.Substring(0, 212) + "[FULL DETAILS IN TICKET]";
+                    content = content.Substring(0, 232) + "[FULL DETAILS IN TICKET]";
                 }
 
                 iTextSharp.text.Paragraph p = new iTextSharp.text.Paragraph(content, new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.NORMAL));
